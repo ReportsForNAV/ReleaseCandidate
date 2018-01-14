@@ -2,8 +2,8 @@ OBJECT Table 70000 ForNAV Setup
 {
   OBJECT-PROPERTIES
   {
-    Date=20-12-17;
-    Time=[ 5:45:37 PM];
+    Date=14-01-18;
+    Time=[ 4:01:07 PM];
     Modified=Yes;
     Version List=SHIP;
   }
@@ -71,11 +71,6 @@ OBJECT Table 70000 ForNAV Setup
           EXIT;
 
       ReplaceReportSel.RUN;
-    END;
-
-    PROCEDURE RunTest@2();
-    BEGIN
-      CODEUNIT.RUN(CODEUNIT::"ForNAV Test Runner");
     END;
 
     PROCEDURE DesignTemplatePortrait@1000000003();

@@ -1450,6 +1450,422 @@ OBJECT Table 70250 ForNAV Statement Arguments
   }
 }
 
+OBJECT Table 70300 ForNAV Check Arguments
+{
+  OBJECT-PROPERTIES
+  {
+    Date=09-02-18;
+    Time=17:34:29;
+    Modified=Yes;
+    Version List=SHIP;
+  }
+  PROPERTIES
+  {
+  }
+  FIELDS
+  {
+    { 1   ;   ;Primary Key         ;Code10         }
+    { 7   ;   ;Test Print          ;Boolean        }
+    { 8   ;   ;Bank Account No.    ;Code20         }
+    { 12  ;   ;Reprint Checks      ;Boolean        }
+    { 20  ;   ;One Check Per Vendor;Boolean        }
+    { 25  ;   ;Check No.           ;Code20         }
+    { 28  ;   ;Commit Each Check   ;Boolean        }
+    { 50  ;   ;Name                ;Text50        ;CaptionML=[ENU=Name;
+                                                              NLD=Naam] }
+    { 51  ;   ;Name 2              ;Text50        ;CaptionML=[ENU=Name 2;
+                                                              NLD=Naam 2] }
+    { 52  ;   ;Address             ;Text50        ;CaptionML=[ENU=Address;
+                                                              NLD=Adres] }
+    { 53  ;   ;Address 2           ;Text50        ;CaptionML=[ENU=Address 2;
+                                                              NLD=Adres 2] }
+    { 54  ;   ;City                ;Text30        ;TableRelation=IF (Country/Region Code=CONST()) "Post Code".City
+                                                                 ELSE IF (Country/Region Code=FILTER(<>'')) "Post Code".City WHERE (Country/Region Code=FIELD(Country/Region Code));
+                                                   ValidateTableRelation=No;
+                                                   TestTableRelation=No;
+                                                   CaptionML=[ENU=City;
+                                                              NLD=Plaats] }
+    { 55  ;   ;Post Code           ;Code20        ;TableRelation=IF (Country/Region Code=CONST()) "Post Code".Code
+                                                                 ELSE IF (Country/Region Code=FILTER(<>'')) "Post Code".Code WHERE (Country/Region Code=FIELD(Country/Region Code));
+                                                   ValidateTableRelation=No;
+                                                   TestTableRelation=No;
+                                                   CaptionML=[ENU=Post Code;
+                                                              NLD=Postcode] }
+    { 56  ;   ;County              ;Text30        ;CaptionML=[ENU=County;
+                                                              NLD=Provincie] }
+    { 57  ;   ;Country/Region Code ;Code10        ;TableRelation=Country/Region;
+                                                   CaptionML=[ENU=Country/Region Code;
+                                                              NLD=Land-/regiocode] }
+  }
+  KEYS
+  {
+    {    ;Primary Key                             ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    PROCEDURE SetAddress@1000000001();
+    VAR
+      CompanyInformation@1000000000 : Record 79;
+    BEGIN
+      IF "Test Print" THEN BEGIN
+        Name := 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+        Address := 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+        City := 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+        "Post Code" := 'XXXXX';
+        "Country/Region Code" := 'XX';
+      END ELSE BEGIN
+        CompanyInformation.GET;
+        Name := CompanyInformation.Name;
+        "Name 2" := CompanyInformation."Name 2";
+        Address := CompanyInformation.Address;
+        "Address 2" := CompanyInformation."Address 2";
+        City := CompanyInformation.City;
+        "Post Code" := CompanyInformation."Post Code";
+        County := CompanyInformation.County;
+        "Country/Region Code" := CompanyInformation."Country/Region Code";
+      END;
+    END;
+
+    PROCEDURE GetNextCheckNo@1000000000() : Code[20];
+    BEGIN
+      "Check No." := INCSTR("Check No.");
+      IF "Test Print" THEN
+        "Check No." := 'XXXX';
+
+      EXIT("Check No.");
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
+OBJECT Table 70301 ForNAV Check
+{
+  OBJECT-PROPERTIES
+  {
+    Date=09-02-18;
+    Time=17:38:06;
+    Modified=Yes;
+    Version List=SHIP;
+  }
+  PROPERTIES
+  {
+  }
+  FIELDS
+  {
+    { 1   ;   ;Page No.            ;Integer        }
+    { 5   ;   ;Currency Code       ;Code10         }
+    { 6   ;   ;Posting Date        ;Date           }
+    { 8   ;   ;Bank Account No.    ;Code20         }
+    { 9   ;   ;Balancing Type      ;Option        ;OptionString=G/L Account,Customer,Vendor,Bank Account }
+    { 10  ;   ;Balancing No.       ;Code20         }
+    { 11  ;   ;Amount              ;Decimal        }
+    { 12  ;   ;Document No.        ;Code20         }
+    { 15  ;   ;Document Date       ;Date           }
+    { 18  ;   ;Description         ;Text250        }
+    { 22  ;   ;Check No.           ;Code20         }
+    { 25  ;   ;Amount as Text (LCY);Text250        }
+    { 26  ;   ;Amount as Text      ;Text250        }
+    { 27  ;   ;ApplyMethod         ;Option        ;OptionString=Payment,OneLineOneEntry,OneLineID,MoreLinesOneEntry }
+    { 28  ;   ;Applies-to Doc. No. ;Code20         }
+    { 29  ;   ;Applies-to ID       ;Code50         }
+    { 30  ;   ;Applies-to Doc. Type;Option        ;OptionCaptionML=[DAN=" ,Betaling,Faktura,Kreditnota,Rentenota,Rykker,Refusion";
+                                                                    DEU=" ,Zahlung,Rechnung,Gutschrift,Zinsrechnung,Mahnung,Erstattung";
+                                                                    ENU=" ,Payment,Invoice,Credit Memo,Finance Charge Memo,Reminder,Refund";
+                                                                    ESP=" ,Pago,Factura,Abono,Docs. interÇs,Recordatorio,Reembolso,,,,,,,,,,,,,,,Efecto";
+                                                                    FIN=" ,Maksu,Lasku,Hyvityslasku,ViivÑstyskululasku,Muistutus,Hyvitys";
+                                                                    FRA=" ,Paiement,Facture,Avoir,IntÇràts,Relance,Remboursement";
+                                                                    ISL=" ,Grei–sla,Reikningur,Kreditreikningur,Vaxtareikningur,InnheimtubrÇf,Endurgrei–sla";
+                                                                    ITA=" ,Pagamento,Fattura,Nota credito,Nota addebito interessi,Sollecito,Rimborso,,,,Insoluto";
+                                                                    NLD=" ,Betaling,Factuur,Creditnota,Rentefactuur,Aanmaning,Terugbetaling";
+                                                                    NOR=" ,Betaling,Faktura,Kreditnota,Rentenota,Purring,Refusjon"];
+                                                   OptionString=[ ,Payment,Invoice,Credit Memo,Finance Charge Memo,Reminder,Refund] }
+    { 31  ;   ;Amount Filled as Text;Text30        }
+  }
+  KEYS
+  {
+    {    ;Page No.                                ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    PROCEDURE CreateFromGenJnlLn@1000000000(VAR Args@1000000019 : Record 70300;GenJnlLn@1000000001 : Record 81);
+    BEGIN
+      "Page No." := "Page No." + 1;
+      "Currency Code" := GenJnlLn."Currency Code";
+      "Posting Date" := GenJnlLn."Posting Date";
+      "Bank Account No." := Args."Bank Account No.";
+      Amount := GenJnlLn.Amount;
+      "Document No." := GenJnlLn."Document No.";
+      "Document Date" := GenJnlLn."Document Date";
+      Description := GenJnlLn.Description;
+      "Check No." := Args.GetNextCheckNo;
+      "Applies-to Doc. No." := GenJnlLn."Applies-to Doc. No.";
+      "Applies-to ID" := GenJnlLn."Applies-to ID";
+      "Applies-to Doc. Type" := GenJnlLn."Applies-to Doc. Type";
+      "Balancing Type" := GenJnlLn."Account Type";
+      "Balancing No." := GenJnlLn."Account No.";
+      GetAmountsAsText;
+      GetApplicationMethod(Args, GenJnlLn);
+      INSERT;
+    END;
+
+    PROCEDURE GetStub@1000000002(Args@1000000010 : Record 70300;VAR Stub@1000000000 : Record 70302;GenJnlLine@1000000011 : Record 81);
+    VAR
+      CreateStub@1000000001 : Codeunit 70302;
+    BEGIN
+      CreateStub.FromCheck(Args, Rec, Stub, GenJnlLine);
+    END;
+
+    PROCEDURE UpdateJournal@1000000005(Args@1000000002 : Record 70300;VAR GenJnlLine@1000000001 : Record 81);
+    VAR
+      CheckUpdateJournal@1000000000 : Codeunit 70301;
+    BEGIN
+      CheckUpdateJournal.UpdateJournal(Args, Rec, GenJnlLine);
+    END;
+
+    PROCEDURE CreateCheckLedgerEntry@1000000001(Args@1000000001 : Record 70300;GenJnlLine@1000000002 : Record 81);
+    VAR
+      CreateCheckLedgEnt@1000000000 : Codeunit 70303;
+    BEGIN
+      CreateCheckLedgEnt.CreateCheckLedgerEntry(Args, Rec, GenJnlLine);
+    END;
+
+    LOCAL PROCEDURE GetAmountsAsText@1000000003();
+    VAR
+      GLSetup@1000000002 : Record 98;
+      CheckReport@1000000000 : Report 1401;
+      NumberText@1000000001 : ARRAY [2] OF Text[80];
+    BEGIN
+      CheckReport.InitTextVariable;
+      CheckReport.FormatNoText(NumberText,Amount,"Currency Code");
+      "Amount as Text (LCY)" := NumberText[1];
+      "Amount as Text" := NumberText[2];
+      "Amount Filled as Text" := FORMAT(Amount,0,'<Integer Thousand><Decimals>');
+      WHILE STRLEN("Amount Filled as Text") < 17 DO
+        "Amount Filled as Text" := '*' + "Amount Filled as Text";
+
+      GLSetup.GET;
+      "Amount Filled as Text" := GLSetup."Local Currency Symbol" + "Amount Filled as Text";
+    END;
+
+    LOCAL PROCEDURE GetApplicationMethod@1000000004(Args@1000000002 : Record 70300;FromGenJournalLine@1000000001 : Record 81);
+    VAR
+      GenJournalLine@1000000000 : Record 81;
+    BEGIN
+      WITH FromGenJournalLine DO BEGIN
+        IF Args."One Check Per Vendor" THEN BEGIN
+          ApplyMethod := ApplyMethod::MoreLinesOneEntry;
+          GenJournalLine.RESET;
+          GenJournalLine.SETCURRENTKEY("Journal Template Name","Journal Batch Name","Posting Date","Document No.");
+          GenJournalLine.SETRANGE("Journal Template Name", "Journal Template Name");
+          GenJournalLine.SETRANGE("Journal Batch Name", "Journal Batch Name");
+          GenJournalLine.SETRANGE("Posting Date","Posting Date");
+          GenJournalLine.SETRANGE("Document No.","Document No.");
+          GenJournalLine.SETRANGE("Account Type","Account Type");
+          GenJournalLine.SETRANGE("Account No.","Account No.");
+          GenJournalLine.SETRANGE("Bal. Account Type","Bal. Account Type");
+          GenJournalLine.SETRANGE("Bal. Account No.","Bal. Account No.");
+          GenJournalLine.SETRANGE("Bank Payment Type","Bank Payment Type");
+          GenJournalLine.FIND('-');
+      //      RemainingAmount := 0;
+        END ELSE
+          IF "Applies-to Doc. No." <> '' THEN
+            ApplyMethod := ApplyMethod::OneLineOneEntry
+          ELSE
+            IF "Applies-to ID" <> '' THEN
+              ApplyMethod := ApplyMethod::OneLineID
+            ELSE
+              ApplyMethod := ApplyMethod::Payment;
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
+OBJECT Table 70302 ForNAV Stub
+{
+  OBJECT-PROPERTIES
+  {
+    Date=09-02-18;
+    Time=14:23:43;
+    Modified=Yes;
+    Version List=SHIP;
+  }
+  PROPERTIES
+  {
+  }
+  FIELDS
+  {
+    { 1   ;   ;Entry No.           ;Integer        }
+    { 2   ;   ;Document Date       ;Date           }
+    { 3   ;   ;Document No.        ;Code20         }
+    { 4   ;   ;External Document No.;Text35        }
+    { 5   ;   ;Amount              ;Decimal        }
+    { 6   ;   ;Discount Amount     ;Decimal        }
+    { 7   ;   ;Net Amount          ;Decimal        }
+    { 8   ;   ;Document Type       ;Text50         }
+    { 9   ;   ;Amount Paid         ;Decimal        }
+    { 10  ;   ;Job No.             ;Code20         }
+    { 12  ;   ;Currency Code       ;Code10         }
+    { 13  ;   ;Posting Date        ;Date           }
+  }
+  KEYS
+  {
+    {    ;Entry No.                               ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    PROCEDURE CustUpdateAmounts@3(VAR CustLedgEntry2@1000 : Record 21;VAR RemainingAmount2@1001 : Decimal;VAR LineAmount2@1000000000 : Decimal);
+    VAR
+      Currency@1000000001 : Record 4;
+    BEGIN
+      IF "Currency Code" <> '' THEN
+        Currency.GET("Currency Code");
+
+      "Entry No." := CustLedgEntry2."Entry No.";
+      "Document Type" := FORMAT(CustLedgEntry2."Document Type");
+      "Document No." := CustLedgEntry2."Document No.";
+      "External Document No." := CustLedgEntry2."External Document No.";
+      "Document Date" := CustLedgEntry2."Document Date";
+      //PostingDesc := CustLedgEntry2.Description;
+      //CurrencyCode2 := CustLedgEntry2."Currency Code";
+      CustLedgEntry2.CALCFIELDS("Remaining Amount");
+      Amount := -(CustLedgEntry2."Remaining Amount" - CustLedgEntry2."Remaining Pmt. Disc. Possible"-
+        CustLedgEntry2."Accepted Payment Tolerance");
+
+      LineAmount2 :=
+        ROUND(
+          ExchangeAmt(CustLedgEntry2."Posting Date","Currency Code",CustLedgEntry2."Currency Code",Amount),
+          Currency."Amount Rounding Precision");
+
+      IF ((((CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::Invoice) AND
+            (LineAmount2 >= RemainingAmount2)) OR
+           ((CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::"Credit Memo") AND
+            (LineAmount2 <= RemainingAmount2))) AND
+          ("Posting Date" <= CustLedgEntry2."Pmt. Discount Date")) OR
+         CustLedgEntry2."Accepted Pmt. Disc. Tolerance"
+      THEN BEGIN
+        "Discount Amount" := -CustLedgEntry2."Remaining Pmt. Disc. Possible";
+        IF CustLedgEntry2."Accepted Payment Tolerance" <> 0 THEN
+          "Discount Amount" := "Discount Amount" - CustLedgEntry2."Accepted Payment Tolerance";
+      END ELSE BEGIN
+      //  IF RemainingAmount2 >=
+      //     ROUND(
+      //      -(ExchangeAmt(CustLedgEntry2."Posting Date", "Currency Code", CurrencyCode2,
+      //        CustLedgEntry2."Remaining Amount")),Currency."Amount Rounding Precision")
+      //  THEN
+      //    LineAmount2 :=
+      //      ROUND(
+      //        -(ExchangeAmt(CustLedgEntry2."Posting Date",GenJnlLine."Currency Code",CurrencyCode2,
+      //          CustLedgEntry2."Remaining Amount")),Currency."Amount Rounding Precision")
+      //  ELSE BEGIN
+      //    LineAmount2 := RemainingAmount2;
+      //    LineAmount :=
+      //      ROUND(
+      //        ExchangeAmt(CustLedgEntry2."Posting Date",CurrencyCode2,GenJnlLine."Currency Code",
+      //        LineAmount2),Currency."Amount Rounding Precision");
+      //  END;
+        "Discount Amount" := 0;
+      END;
+      INSERT;
+    END;
+
+    PROCEDURE VendUpdateAmounts@4(VAR VendLedgEntry2@1000 : Record 25;VAR RemainingAmount2@1001 : Decimal;VAR LineAmount2@1000000002 : Decimal);
+    VAR
+      Currency@1000000001 : Record 4;
+      CurrencyCode2@1000000000 : Code[10];
+    BEGIN
+      IF "Currency Code" <> '' THEN
+        Currency.GET("Currency Code");
+      "Entry No." := VendLedgEntry2."Entry No.";
+      "Document Type" := FORMAT(VendLedgEntry2."Document Type");
+      "Document No." := VendLedgEntry2."Document No.";
+      "External Document No." := VendLedgEntry2."External Document No.";
+      //DocNo := ExtDocNo;
+      "Document Date" := VendLedgEntry2."Document Date";
+      CurrencyCode2 := VendLedgEntry2."Currency Code";
+      VendLedgEntry2.CALCFIELDS("Remaining Amount");
+      //PostingDesc := VendLedgEntry2.Description;
+      Amount := -(VendLedgEntry2."Remaining Amount" - VendLedgEntry2."Remaining Pmt. Disc. Possible" -
+        VendLedgEntry2."Accepted Payment Tolerance");
+      LineAmount2 :=
+        ROUND(
+          ExchangeAmt(VendLedgEntry2."Posting Date","Currency Code",CurrencyCode2,Amount),
+          Currency."Amount Rounding Precision");
+      IF ((((VendLedgEntry2."Document Type" = VendLedgEntry2."Document Type"::Invoice) AND
+            (LineAmount2 <= RemainingAmount2)) OR
+           ((VendLedgEntry2."Document Type" = VendLedgEntry2."Document Type"::"Credit Memo") AND
+            (LineAmount2 >= RemainingAmount2))) AND
+          ("Posting Date" <= VendLedgEntry2."Pmt. Discount Date")) OR
+         VendLedgEntry2."Accepted Pmt. Disc. Tolerance"
+      THEN BEGIN
+        "Discount Amount" := -VendLedgEntry2."Remaining Pmt. Disc. Possible";
+        IF VendLedgEntry2."Accepted Payment Tolerance" <> 0 THEN
+          "Discount Amount" := "Discount Amount" - VendLedgEntry2."Accepted Payment Tolerance";
+      END ELSE BEGIN
+      // IF RemainingAmount2 >=
+      //     ROUND(
+      //      -(ExchangeAmt(VendLedgEntry2."Posting Date",GenJnlLine."Currency Code",CurrencyCode2,
+      //        VendLedgEntry2."Amount to Apply")),Currency."Amount Rounding Precision")
+      //  THEN BEGIN
+      //    LineAmount2 :=
+      //      ROUND(
+      //        -(ExchangeAmt(VendLedgEntry2."Posting Date",GenJnlLine."Currency Code",CurrencyCode2,
+      //          VendLedgEntry2."Amount to Apply")),Currency."Amount Rounding Precision");
+      //    LineAmount :=
+      //      ROUND(
+      //        ExchangeAmt(VendLedgEntry2."Posting Date",CurrencyCode2,GenJnlLine."Currency Code",
+      //        LineAmount2),Currency."Amount Rounding Precision");
+      //  END ELSE BEGIN
+      //    LineAmount2 := RemainingAmount2;
+      //    LineAmount :=
+      //      ROUND(
+      //        ExchangeAmt(VendLedgEntry2."Posting Date",CurrencyCode2,GenJnlLine."Currency Code",
+      //        LineAmount2),Currency."Amount Rounding Precision");
+      //  END;
+        "Discount Amount" := 0;
+      END;
+      INSERT;
+    END;
+
+    LOCAL PROCEDURE ExchangeAmt@7(PostingDate@1000 : Date;CurrencyCode@1001 : Code[10];CurrencyCode2@1003 : Code[10];Amount@1002 : Decimal) Amount2 : Decimal;
+    VAR
+      CurrencyExchangeRate@1000000000 : Record 330;
+    BEGIN
+      IF (CurrencyCode <> '')  AND (CurrencyCode2 = '') THEN
+         Amount2 :=
+           CurrencyExchangeRate.ExchangeAmtLCYToFCY(
+             PostingDate,CurrencyCode,Amount,CurrencyExchangeRate.ExchangeRate(PostingDate,CurrencyCode))
+      ELSE IF (CurrencyCode = '') AND (CurrencyCode2 <> '') THEN
+        Amount2 :=
+          CurrencyExchangeRate.ExchangeAmtFCYToLCY(
+            PostingDate,CurrencyCode2,Amount,CurrencyExchangeRate.ExchangeRate(PostingDate,CurrencyCode2))
+      ELSE IF (CurrencyCode <> '') AND (CurrencyCode2 <> '') AND (CurrencyCode <> CurrencyCode2) THEN
+        Amount2 := CurrencyExchangeRate.ExchangeAmtFCYToFCY(PostingDate,CurrencyCode2,CurrencyCode,Amount)
+      ELSE
+        Amount2 := Amount;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
 OBJECT Table 70900 ForNAV Captions
 {
   OBJECT-PROPERTIES
@@ -14949,12 +15365,500 @@ OBJECT Report 70250 ForNAV Statement
   }
 }
 
+OBJECT Report 70300 ForNAV US Check
+{
+  OBJECT-PROPERTIES
+  {
+    Date=09-02-18;
+    Time=17:36:33;
+    Modified=Yes;
+    Version List=SHIP;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=US Check;
+    OnInitReport=BEGIN
+                   ;ReportForNav:= ReportForNav.Report(CurrReport.OBJECTID,CurrReport.LANGUAGE,SERIALNUMBER,USERID,COMPANYNAME);ReportForNav.Init;
+                   CODEUNIT.RUN(CODEUNIT::"ForNAV First Time Setup");
+                   COMMIT;
+                 END;
+
+    OnPreReport=BEGIN
+                  ;ReportForNav.OpenDesigner:=ReportForNavOpenDesigner;IF NOT ReportForNav.Pre THEN CurrReport.QUIT;
+                END;
+
+    OnPostReport=BEGIN
+                   ;ReportForNav.Post;
+                 END;
+
+  }
+  DATASET
+  {
+    { 1000000002;;DataItem;Args              ;
+               DataItemTable=Table70300;
+               OnAfterGetRecord=BEGIN
+                                  SetAddress;
+                                END;
+
+               Temporary=Yes }
+
+    { 9788;1   ;DataItem;VoidGenJnlLine      ;
+               DataItemTable=Table81;
+               DataItemTableView=SORTING(Journal Template Name,Journal Batch Name,Posting Date,Document No.);
+               OnPreDataItem=BEGIN
+                               TestVoidCheck;
+                             END;
+
+               OnAfterGetRecord=VAR
+                                  CheckManagement@1000000000 : Codeunit 367;
+                                BEGIN
+                                  CheckManagement.VoidCheck(VoidGenJnlLine);
+                                END;
+
+               ReqFilterFields=Journal Template Name,Journal Batch Name,Posting Date }
+
+    { 1000000001;1;DataItem;GenJnlLn         ;
+               DataItemTable=Table81;
+               OnPreDataItem=BEGIN
+                               COPY(VoidGenJnlLine);
+                               IF NOT Args."Test Print" THEN BEGIN
+                                 SETRANGE("Bank Payment Type","Bank Payment Type"::"Computer Check");
+                                 SETRANGE("Check Printed",FALSE);
+                               END;
+
+                               SETRANGE("Account Type","Account Type"::"Fixed Asset");
+                               IF FIND('-') THEN
+                                 FIELDERROR("Account Type");
+                               SETRANGE("Account Type");
+                             END;
+
+               OnAfterGetRecord=BEGIN
+                                  Check.DELETEALL;
+                                  Check.CreateFromGenJnlLn(Args, GenJnlLn);
+                                END;
+                                 }
+
+    { 1000000000;2;DataItem;Check            ;
+               DataItemTable=Table70301;
+               OnAfterGetRecord=BEGIN
+                                  Stub.DELETEALL;
+                                  GetStub(Args, Stub, GenJnlLn);
+                                  UpdateJournal(Args, GenJnlLn);
+                                  Check.CreateCheckLedgerEntry(Args, GenJnlLn);
+                                END;
+
+               Temporary=Yes }
+
+    { 1000000003;2;DataItem;Stub             ;
+               DataItemTable=Table70302;
+               Temporary=Yes }
+
+  }
+  REQUESTPAGE
+  {
+    PROPERTIES
+    {
+      SaveValues=Yes;
+      OnOpenPage=BEGIN
+                   IF NOT Args.GET THEN
+                     Args.INSERT;
+                 END;
+
+    }
+    CONTROLS
+    {
+      { 1900000001;0;Container;
+                  ContainerType=ContentArea }
+
+      { 1900000002;1;Group  ;
+                  CaptionML=[CSY=Moßnosti;
+                             DAN=Indstillinger;
+                             DEU=Optionen;
+                             ENU=Options;
+                             FIN=Vaihtoehdot;
+                             ISL=Valkostir;
+                             NLD=Opties;
+                             NOR=Alternativer;
+                             SVE=Alternativ;
+                             ITS=Opzioni;
+                             NLB=Opties] }
+
+      { 1000000006;2;Field  ;
+                  Name=BankAccount;
+                  CaptionML=[ENU=Bank Account;
+                             ESM=Cuenta bancaria;
+                             FRC=Compte bancaire;
+                             ENC=Bank Account];
+                  ToolTipML=[ENU=Specifies the bank account that the check will be drawn from.;
+                             ESM=Especifica la cuenta bancaria desde la que se gira el cheque.;
+                             FRC=SpÇcifie le compte bancaire Ö partir duquel le chäque sera tirÇ.;
+                             ENC=Specifies the bank account that the cheque will be drawn from.];
+                  ApplicationArea=#Basic,#Suite;
+                  SourceExpr=Args."Bank Account No.";
+                  TableRelation="Bank Account";
+                  OnValidate=BEGIN
+                               InputBankAccount;
+                             END;
+                              }
+
+      { 1000000005;2;Field  ;
+                  Name=LastCheckNo;
+                  CaptionML=[ENU=Last Check No.;
+                             ESM=Èlt. n.ß cheque;
+                             FRC=N¯ du dernier chäque;
+                             ENC=Last Cheque No.];
+                  ToolTipML=[ENU=Specifies the value of the Last Check No. field on the bank account card.;
+                             ESM=Especifica el valor del campo Èlt. n.ß cheque que consta en la ficha de cuenta bancaria.;
+                             FRC=SpÇcifie la valeur du champ N¯ dernier chäque sur la fiche compte bancaire.;
+                             ENC=Specifies the value of the Last Cheque No. field on the bank account card.];
+                  ApplicationArea=#Basic,#Suite;
+                  SourceExpr=Args."Check No." }
+
+      { 1000000004;2;Field  ;
+                  Name=OneCheckPerVendorPerDocumentNo;
+                  CaptionML=[ENU=One Check per Vendor per Document No.;
+                             ESM=Un cheque por proveedor y n.ß de documento;
+                             FRC=Un chäque par fournisseur par n¯ de document;
+                             ENC=One Cheque per Vendor per Document No.];
+                  ToolTipML=[ENU=Specifies if only one check is printed per vendor for each document number.;
+                             ESM=Especifica si solo se imprime un £nico cheque por proveedor para cada n£mero de documento.;
+                             FRC=Indique si un seul chäque est imprimÇ par fournisseur et par numÇro de document.;
+                             ENC=Specifies if only one Cheque is printed per vendor for each document number.];
+                  ApplicationArea=#Basic,#Suite;
+                  SourceExpr=Args."One Check Per Vendor";
+                  MultiLine=Yes }
+
+      { 1000000003;2;Field  ;
+                  Name=ReprintChecks;
+                  CaptionML=[ENU=Reprint Checks;
+                             ESM=Reimprimir cheques;
+                             FRC=RÇimprimer les chäques;
+                             ENC=Reprint Cheques];
+                  ToolTipML=[ENU=Specifies if checks are printed again if you canceled the printing due to a problem.;
+                             ESM=Especifica si los cheques se imprimen de nuevo despuÇs de cancelar la impresi¢n debido a un problema.;
+                             FRC=Indique si les chäques sont rÇimprimÇs si vous avez annulÇ l'impression suite Ö un probläme.;
+                             ENC=Specifies if cheques are printed again if you cancelled the printing due to a problem.];
+                  ApplicationArea=#Basic,#Suite;
+                  SourceExpr=Args."Reprint Checks" }
+
+      { 1000000002;2;Field  ;
+                  Name=TestPrinting;
+                  CaptionML=[ENU=Test Print;
+                             ESM=Probar impresi¢n;
+                             FRC=êpreuve;
+                             ENC=Test Print];
+                  ToolTipML=[ENU=Specifies if you want to print the checks on blank paper before you print them on check forms.;
+                             ESM=Especifica si desea imprimir los cheques con papel en blanco antes de imprimirlos con formularios preimpresos.;
+                             FRC=Indique si vous souhaitez imprimer les chäques sur papier blanc avant de les imprimer sous forme de chäque.;
+                             ENC=Specifies if you want to print the cheques on blank paper before you print them on cheque forms.];
+                  ApplicationArea=#Basic,#Suite;
+                  SourceExpr=Args."Test Print" }
+
+      { 1000000001;2;Field  ;
+                  CaptionML=[ENU=Commit Each Check;
+                             ESM=Confirmar cada cheque;
+                             FRC=DÇposer chaque chäque;
+                             ENC=Commit Each Cheque];
+                  ToolTipML=[ENU=Specifies if you want each check to commit to the database after printing instead of at the end of the print job. This allows you to avoid differences between the data and check stock on networks where the print job is cached.;
+                             ESM=Especifica si desea que cada cheque se confirme en la base de datos despuÇs de su impresi¢n, en lugar de al final del trabajo de impresi¢n. De este modo, se evita que se produzcan diferencias entre los datos y las existencias de cheques en las redes donde est† almacenado en cachÇ el trabajo de impresi¢n.;
+                             FRC=SpÇcifie si vous souhaitez que chaque chäque soit dÇposÇ dans la base de donnÇes apräs impression plutìt qu'Ö la fin du travail d'impression. Cela vous permet d'Çviter les diffÇrences entre les stocks de chäques et de donnÇes sur les rÇseaux oó le travail d'impression est mis en cache.;
+                             ENC=Specifies if you want each cheque to commit to the database after printing instead of at the end of the print job. This allows you to avoid differences between the data and cheque stock on networks where the print job is cached.];
+                  ApplicationArea=#Basic,#Suite;
+                  SourceExpr=Args."Commit Each Check" }
+
+      { 5000;2   ;Field     ;
+                  Name=ForNavOpenDesigner;
+                  CaptionML=ENU=Open Designer;
+                  SourceExpr=ReportForNavOpenDesigner;
+                  Visible=ReportForNavAllowDesign }
+
+    }
+  }
+  LABELS
+  {
+  }
+  CODE
+  {
+    VAR
+      ReportForNav@5000 : DotNet "'ForNav.Reports.3.0.0.1428, Version=3.0.0.1428, Culture=neutral, PublicKeyToken=5284c1af2984feb0'.ForNav.Report" WITHEVENTS;
+      ReportForNavClient@5003 : DotNet "'ForNav.Reports.3.0.0.1428, Version=3.0.0.1428, Culture=neutral, PublicKeyToken=5284c1af2984feb0'.ForNav.Report" RUNONCLIENT;
+      ReportForNavDialog@5001 : Dialog;
+      ReportForNavOpenDesigner@5002 : Boolean;
+      ReportForNavAllowDesign@5004 : Boolean INDATASET;
+
+    LOCAL PROCEDURE TestVoidCheck@1000000000();
+    VAR
+      VoidCheck@1000000000 : Codeunit 70300;
+    BEGIN
+      IF NOT VoidCheck.TestVoidCheck(VoidGenJnlLine, Args, CurrReport.PREVIEW) THEN
+        CurrReport.BREAK;
+    END;
+
+    [External]
+    PROCEDURE InputBankAccount@8();
+    VAR
+      BankAccount@1000000000 : Record 270;
+    BEGIN
+      IF Args."Bank Account No." <> '' THEN BEGIN
+        BankAccount.GET(Args."Bank Account No.");
+        BankAccount.TESTFIELD(Blocked,FALSE);
+        BankAccount.TESTFIELD("Last Check No.");
+        Args."Check No." := BankAccount."Last Check No.";
+      END;
+    END;
+
+    EVENT ReportForNav@5000::OnInit@5002();
+    VAR
+      ReportLayoutSelection@1000 : Record 9651;
+      CustomReportLayout@1001 : Record 9650;
+      CustomLayoutID@1002 : Variant;
+      InStream@1004 : InStream;
+      EmptyLayout@1003 : Text;
+    BEGIN
+      EmptyLayout := FORMAT(ReportLayoutSelection."Custom Report Layout Code");
+      CustomLayoutID := ReportLayoutSelection."Custom Report Layout Code";
+      ReportForNav.OData := GETURL(CLIENTTYPE::OData, COMPANYNAME, OBJECTTYPE::Page, 7702);
+      IF FORMAT(ReportLayoutSelection.GetTempLayoutSelected) <> EmptyLayout THEN
+        CustomLayoutID := ReportLayoutSelection.GetTempLayoutSelected
+      ELSE
+        IF ReportLayoutSelection.HasCustomLayout(ReportForNav.ReportID) = 1 THEN
+          CustomLayoutID := ReportLayoutSelection."Custom Report Layout Code";
+
+      IF (FORMAT(CustomLayoutID) <> EmptyLayout) AND CustomReportLayout.GET(CustomLayoutID) THEN BEGIN
+        CustomReportLayout.TESTFIELD(Type,CustomReportLayout.Type::RDLC);
+        CustomReportLayout.CALCFIELDS(Layout);
+        CustomReportLayout.Layout.CREATEINSTREAM(InStream,TEXTENCODING::UTF8);
+        ReportForNav.IsCustomLayout := TRUE;
+      END ELSE
+        REPORT.RDLCLAYOUT(ReportForNav.ReportID,InStream);
+
+      ReportForNav.LoadRdlc(InStream);
+      IF ReportForNav.IsWindowsClient THEN BEGIN
+        ReportForNav.CheckClientAddIn();
+        ReportForNavClient := ReportForNavClient.Report(ReportForNav.Definition);
+        ReportForNavAllowDesign := ReportForNavClient.HasDesigner AND NOT ReportForNav.ParameterMode;
+      END;
+    END;
+
+    EVENT ReportForNav@5000::OnSave@5010(Base64Layout@1000 : Text);
+    VAR
+      CustomReportLayout@1002 : Record 9650;
+      ReportLayoutSelection@1003 : Record 9651;
+      LayoutId@1004 : Variant;
+      TempBlob@1007 : Record 99008535;
+      OutStream@1006 : OutStream;
+      Bstr@1005 : BigText;
+      EmptyLayout@1001 : Text;
+    BEGIN
+      EmptyLayout := FORMAT(ReportLayoutSelection."Custom Report Layout Code");
+      LayoutId := ReportLayoutSelection."Custom Report Layout Code";
+      IF ReportLayoutSelection.HasCustomLayout(ReportForNav.ReportID) = 1 THEN BEGIN
+        IF FORMAT(ReportLayoutSelection.GetTempLayoutSelected) <> EmptyLayout THEN BEGIN
+          LayoutId := ReportLayoutSelection.GetTempLayoutSelected;
+        END ELSE BEGIN
+          IF ReportLayoutSelection.GET(ReportForNav.ReportID, COMPANYNAME) THEN BEGIN
+          LayoutId := ReportLayoutSelection."Custom Report Layout Code";
+          END;
+        END;
+      END ELSE BEGIN
+        IF CONFIRM('Default custom layout not found. Create one?') THEN;
+      END;
+      IF FORMAT(LayoutId) <> EmptyLayout THEN BEGIN
+        TempBlob.Blob.CREATEOUTSTREAM(OutStream);
+        Bstr.ADDTEXT(Base64Layout);
+        Bstr.WRITE(OutStream);
+        CustomReportLayout.GET(LayoutId);
+        CustomReportLayout.ImportLayoutBlob(TempBlob, 'RDL');
+      END;
+    END;
+
+    EVENT ReportForNav@5000::OnParameters@5008(Parameters@1000 : Text);
+    BEGIN
+      ReportForNav.Parameters := REPORT.RUNREQUESTPAGE(ReportForNav.ReportID, Parameters);
+    END;
+
+    EVENT ReportForNav@5000::OnPreview@5009(Parameters@1000 : Text;FileName@1005 : Text);
+    VAR
+      PdfFile@1002 : File;
+      InStream@1003 : InStream;
+      OutStream@1004 : OutStream;
+    BEGIN
+      COMMIT;
+      PdfFile.CREATETEMPFILE;
+      PdfFile.CREATEOUTSTREAM(OutStream);
+      REPORT.SAVEAS(ReportForNav.ReportID, Parameters, REPORTFORMAT::Pdf, OutStream);
+      PdfFile.CREATEINSTREAM(InStream);
+      ReportForNavClient.ShowDesigner;
+      IF ReportForNav.IsValidPdf(PdfFile.NAME) THEN DOWNLOADFROMSTREAM(InStream, '', '', '', FileName);
+      PdfFile.CLOSE;
+    END;
+
+    EVENT ReportForNav@5000::OnPreSection@5012(DataItemId@1000000000 : Text;SectionId@1000000001 : Text);
+    BEGIN
+    END;
+
+    EVENT ReportForNav@5000::OnPostSection@50013(DataItemId@1000000000 : Text;SectionId@1000000001 : Text);
+    BEGIN
+    END;
+
+    EVENT ReportForNav@5000::OnClientOperation@5008(Args@1000 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Array");
+    VAR
+      op@1001 : Text;
+      FileMgmt@1002 : Codeunit 419;
+      Process@1006 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Diagnostics.Process" RUNONCLIENT;
+      PathObj@1005 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.IO.Path" RUNONCLIENT;
+      FileVersionInfo@1003 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Diagnostics.FileVersionInfo" RUNONCLIENT;
+      DirectoryHelper@1004 : DotNet "'mscorlib'.System.IO.Directory" RUNONCLIENT;
+    BEGIN
+      op := Args.GetValue(0);
+      CASE op OF
+        'TempPath': ReportForNav.Result := PathObj.GetTempPath();
+        'FileExists': ReportForNav.Result := FileMgmt.ClientFileExists(Args.GetValue(1));
+        'DirectoryExists': ReportForNav.Result := FileMgmt.ClientDirectoryExists(Args.GetValue(1));
+        'ProcessLocation': ReportForNav.Result := Process.GetCurrentProcess().MainModule.FileName;
+        'FileVersion': ReportForNav.Result := FileVersionInfo.GetVersionInfo(Args.GetValue(1)).FileVersion;
+        'DeleteFile': FileMgmt.DeleteClientFile(Args.GetValue(1));
+        'DeleteDirectory': IF STRLEN(Args.GetValue(1)) > 20 THEN
+          IF FileMgmt.ClientDirectoryExists(Args.GetValue(1)) THEN
+            DirectoryHelper.Delete(FORMAT(Args.GetValue(1)), TRUE);
+      END;
+    END;
+
+    EVENT ReportForNav@5000::OnCheckForNavClientVersion@5007();
+    BEGIN
+      ReportForNavClient := ReportForNavClient.Report();
+      IF ReportForNav.MyFileVersion <> ReportForNavClient.MyFileVersion THEN
+        ERROR('You have version %1 of the Reports ForNAV assembly here:\\%2\\Please close your NAV client and update it to version %3.',
+              ReportForNavClient.MyFileVersion, ReportForNavClient.MyFileName, ReportForNav.MyFileVersion);
+    END;
+
+    EVENT ReportForNav@5000::OnSelectPrinter@5006();
+    BEGIN
+      ReportForNav.PrinterSettings.PageSettings := ReportForNavClient.SelectPrinter(ReportForNav.PrinterSettings.PrinterName,ReportForNav.PrinterSettings.ShowPrinterDialog,ReportForNav.PrinterSettings.PageSettings);
+    END;
+
+    EVENT ReportForNav@5000::OnPrint@5005(InStream@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.IO.Stream");
+    VAR
+      ClientFileName@1000000001 : Text[255];
+    BEGIN
+      DOWNLOADFROMSTREAM(InStream, '', '<TEMP>', '', ClientFileName);
+      ReportForNavClient.Print(ClientFileName);
+    END;
+
+    EVENT ReportForNav@5000::OnDesign@5007(Data@1001 : Text);
+    BEGIN
+      ReportForNavClient.Data := Data;
+      WHILE ReportForNavClient.DesignReport DO BEGIN
+        ReportForNav.HandleRequest(ReportForNavClient.GetRequest());
+        SLEEP(100);
+      END;
+    END;
+
+    EVENT ReportForNav@5000::OnView@5008(ClientFileName@1000000000 : Text;Parameters@1000000001 : Text;ServerFileName@1000000002 : Text);
+    VAR
+      ServerFile@1000000003 : File;
+      ServerInStream@1000000004 : InStream;
+      Filter@1000000005 : Text;
+    BEGIN
+      ServerFile.OPEN(ServerFileName);
+      ServerFile.CREATEINSTREAM(ServerInStream);
+      IF STRLEN(ClientFileName) >= 4 THEN IF LOWERCASE(COPYSTR(ClientFileName, STRLEN(ClientFileName)-3, 4)) = '.pdf' THEN Filter := 'PDF (*.pdf)|*.pdf';
+      IF STRLEN(ClientFileName) >= 4 THEN IF LOWERCASE(COPYSTR(ClientFileName, STRLEN(ClientFileName)-3, 4)) = '.doc' THEN Filter := 'Microsoft Word (*.doc)|*.doc';
+      IF STRLEN(ClientFileName) >= 5 THEN IF LOWERCASE(COPYSTR(ClientFileName, STRLEN(ClientFileName)-4, 5)) = '.xlsx' THEN Filter := 'Microsoft Excel (*.xlsx)|*.xlsx';
+      DOWNLOADFROMSTREAM(ServerInStream,'Export','',Filter,ClientFileName);
+    END;
+
+    EVENT ReportForNav@5000::OnMessage@5009(Operation@1000000000 : Text;Parameter@1000000001 : Text;ParameterNo@1000000002 : Integer);
+    BEGIN
+      CASE Operation OF
+        'Open'    : ReportForNavDialog.OPEN(Parameter);
+        'Update'  : ReportForNavDialog.UPDATE(ParameterNo,Parameter);
+        'Close'   : ReportForNavDialog.CLOSE();
+        'Message' : MESSAGE(Parameter);
+        'Error'   : ERROR(Parameter);
+      END;
+    END;
+
+    EVENT ReportForNav@5000::OnPrintPreview@5011(InStream@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.IO.Stream";Preview@1000000001 : Boolean);
+    VAR
+      ClientFileName@1000000002 : Text[255];
+    BEGIN
+      CurrReport.LANGUAGE := SYSTEM.GLOBALLANGUAGE;
+      DOWNLOADFROMSTREAM(InStream, '', '<TEMP>', '', ClientFileName);
+      WHILE ReportForNavClient.PrintPreviewDialog(ClientFileName,ReportForNav.PrinterSettings.PrinterName,Preview) DO BEGIN
+        ReportForNav.HandlePrintPreviewRequest(ReportForNavClient.GetPrintPreviewRequest());
+        SLEEP(100);
+      END;
+    END;
+
+    EVENT ReportForNav@5000::OnTotals@5004(DataItemId@1000000000 : Text;Operation@1000000001 : Text;GroupTotalFieldNo@1000000002 : Integer);
+    VAR
+      CurrRecRef@1000000003 : RecordRef;
+      NextRecRef@1000000004 : RecordRef;
+      CurrKeyRef@1000000005 : KeyRef;
+      NextKeyRef@1000000006 : KeyRef;
+      FieldIndex@1000000007 : Integer;
+      GroupFieldIndex@1000000008 : Integer;
+    BEGIN
+      // Do not change (Autogenerated by Reports ForNAV) - Instead change the Create Totals, Total Fields or Group Total Fields properties on the Data item in the ForNAV designer
+      CASE DataItemId OF
+        'Stub': WITH Stub DO CASE Operation OF
+           'Add': BEGIN
+                ReportForNav.AddTotal(DataItemId,0,Amount);
+                ReportForNav.AddTotal(DataItemId,1,"Discount Amount");
+                ReportForNav.AddTotal(DataItemId,2,"Net Amount");
+              END;
+           'Restore': BEGIN
+                 Amount := ReportForNav.RestoreTotal(DataItemId,0,GroupTotalFieldNo);
+                 "Discount Amount" := ReportForNav.RestoreTotal(DataItemId,1,GroupTotalFieldNo);
+                 "Net Amount" := ReportForNav.RestoreTotal(DataItemId,2,GroupTotalFieldNo);
+              END;
+        END;
+      END;
+    END;
+
+    BEGIN
+    {
+      TODO: Always check bank account (imput function)
+    }
+    END.
+  }
+  RDLDATA
+  {
+    <?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <Description>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</Description>
+  <AutoRefresh>0</AutoRefresh>
+  <DataSources>
+    <DataSource Name="DataSource">
+      <ConnectionProperties>
+        <DataProvider>SQL</DataProvider>
+        <ConnectString />
+      </ConnectionProperties>
+      <rd:SecurityType>None</rd:SecurityType>
+    </DataSource>
+  </DataSources>
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <Height>2in</Height>
+      </Body>
+      <Width>6.5in</Width>
+      <Page />
+    </ReportSection>
+  </ReportSections>
+  <rd:ReportUnitType>Invalid</rd:ReportUnitType>
+</Report>
+    END_OF_RDLDATA
+  }
+}
+
 OBJECT Report 70518 ForNAV Tax Purchase Templ.
 {
   OBJECT-PROPERTIES
   {
-    Date=07-02-18;
-    Time=10:53:29;
+    Date=09-02-18;
+    Time=17:40:51;
     Modified=Yes;
     Version List=SHIP,FORNAV3.0.0.1428/1428;
   }
@@ -15356,7 +16260,7 @@ OBJECT Report 70518 ForNAV Tax Purchase Templ.
   {
     <?xml version="1.0" encoding="utf-8"?>
 <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
-  <Description>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</Description>
+  <Description>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</Description>
   <AutoRefresh>0</AutoRefresh>
   <DataSources>
     <DataSource Name="DataSource">
@@ -15386,8 +16290,8 @@ OBJECT Report 70519 ForNAV Sales Templ. Sales Tax
 {
   OBJECT-PROPERTIES
   {
-    Date=07-02-18;
-    Time=10:52:58;
+    Date=09-02-18;
+    Time=17:40:26;
     Modified=Yes;
     Version List=SHIP,FORNAV3.0.0.1428/1428;
   }
@@ -15789,7 +16693,7 @@ OBJECT Report 70519 ForNAV Sales Templ. Sales Tax
   {
     <?xml version="1.0" encoding="utf-8"?>
 <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
-  <Description>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</Description>
+  <Description>8oAAAO1d63LjNpb+v1X7Doy2du2uVWRceAHT1qR8aaddcdvetttJzdaWC6Igm9MUqaWobntmUjVPsw+2T7IACVK8gBIoyYlnNklVYpHE7XwHOOd8AA8Pv3+aBsYXFs/9KBz24AD0DBZ60dgPH4a9RTL5lvS+/8M//9Phz0lMP7JZFCfzC/ocLZIbFvs08P/MYmP5511RkTlAA0vUVrnUMy7plA17sqazKL6kX3rGSRQmcRTcPs/4vVP25d3TLGbz+aDU6ODTeekn6hstj30RzfTzVo2hkfekb5wsgmQRM34tZAteJOgb14tR4Hs/sufb6DMTT48djxJGEHAmJjMB7/+pP58F9Dnrt+jw0Z1xQwM2N27ZdBYM8h/0qWdUhlUMHA8A/xeaiPSMq9GfmJdcRsOeAyzo9owznwXjn9iIy/CL77FPcTDsPSbJ7LuDgzGbf06i2bf0cfrFT8B3DjDJwelzSKe+N+fdgBAcXJ3ShB6cRNMZDZ/3904+Xl1+uvlXBC7ZmMUBDcf87+O7vTc945o+sPfMf3hMhj3kuGZ25Sd/nDzyC9ByxYUZi3/0w/Gwd8GShMU94wONH/xwzgcBuAT5U30Dib+QEE023E+hz6u8ZWHyOL+aHH3wg8CfsrT06czndVu8rTOO8LB3JPSkb7izpG94jzS+YcmQ13MVXscsq+zGi/0Zf1KO6DycRPGUJlyOgx9Ysv/m7b/9y9Op+M9R6a8MFV7ZYtZ4yp8Y+8Z17IfJRfQQ7b95Y/xledMwykVPaOClcMz398TDe+V6flE1PFmEnuhbuYFq/aL5b8qNfJozPtiZeJ6NU4HXShhGzB+MQyOJF+xt+c4v9YpPFnGciW2QdoAJgSZ85s6z37fRcLh3fXq299JNxOyLz75u2Ix8aEKDOdMWOIf5gj3QgK8cY19cmasknwm+ePA2puE8WGrTe0b5LBlc0PBhwefCSTRmdf0oureiqlpH2kaqGHNZMdpr+aXHF2DDODzm03me/sl/nCdsCuVqmo2jtoxmi5BYHsSjoixffNlXMemvGcfUi2I+zwU0vGCh+XyOTqNFmBjnoRcshBUw7o5u+9nFnnEbJTTIn7RB34Y944c4WswqNzCf+bLdOxpX+5jfuKWjgF9O/wchqt244+o07N1cfbw9v/xh/zIavBGrzX+f+QHXQFEV79iHi2GvdDVvnD/cv47mQkdFnUysYU+84jgFi5shIaeZz/ijkK8951wISFQzZ4mQzeViOmJxLph0Zcp7lq9NPYlBDZISLB/ZJJWCApBMDhKOVDKnkbeY8tWzkFCxaB5T7/NJFES8O6m+zWjMBAo3/kNIhSnjVsRzTWq5Y2/sOmgEMcZjF7ERM80JHDvUm1hjQMyxWO3FdL0K33Fb/ywGmg/xKAiir9nQ3sVxFM/zGzcsnWrqTmaW5GzYI5gbNwBgryQFLgc58nnlalU+plI+t+wpOY6eehXVvj9dsAzLG+5l8FYxSVtFptm33IHL/+G1XUReivFZEFEOE8QwvUVI37Cd7M/cEN2wh4gZn877Bpkl4mLMpKCPAy70Mgjvo/jPRwGXOPdaxJj5JOBdHPb+92//U/RKXEmfESIa9j7443HA5NNCe/gMT9WzPKZBXromIi6km+Q54FbCj2I/ec6EZfUMbjmyzqcrpfxd9Ht5sdYZeeOgjsRBCoUKH5Q1aevgs7QP9zcJV2oaj0/oLF3B7vk0ey4Q475U3wYNkLgrYYnLSliWIBQiz+psyrRkp+r9GKRltKTsNKWslhtSyQ1nlZAOep2O4CKKPi9m8/tr+iwgu2XxdH7K5umU5AMoKz0XYTrbEIIKfUdcmg5ONd2x7N3qemvnNtL98rgHbVVrQea+zMTAKoDNrElhNrZHWKrnEl2UQgtsKEEGdhNiAJYQu0qA+8ZcCGl4HAXj1WAroS161R26vKgWbBBq4qaGx1TBY8mqUVd4ihWrYWbKmLSgsdK0bIBG0YfVCBSrWyczAvFWYrdUYrdl1V3seU3s0rmoy36F0DPT7uKdTYJqH3RlXy6kB4CuIVcDYKsAcGTVWgZbCcBVzK9dRutkvzttv3mMvl4tktkiKSQr+/DNcG+vBEvRM01E8uf1wFDY+w5gOCowiKx6Yy/gZDFPoimLFfahDZOdT4ZGH/SsQb2YHgi6FlwNAlGB4GZVo86GOo1l5/fHfhDcJ9HReCz4xYoPi1KTgBFpOmAZQcahsG2ihmK1+O9YnEjv6zaaVbyxCzbhhT8sgsS/8MMidssAK0ORDWBQH0DN9eHVZzWuxrWlshMa8jtfZSe0QEa65r6jm+Yq40sgG9VyBJpMY0UVOuoAxEB66C+nDNK5Lq+hJf6xVU34vF6hD60eu4KJLStHXqWeGui6H13DWKDUA0k0IC3PpBTJ1pfe1OdoCV6BIniFoMuq25jmGVyliFb2x/h3Y+87Y4//T05SYReV4Vfb5NarUw/Kl2IklJQElJwEUvs4174n6LDVs1o+1OJRgop7kuHu8Bv5JLbI6lB3Regs5mVaZ7qn9scomp5P6YPSy6wQwqKYHhZOdzErGQwoKQyk5b2UZsx1Oh4pNqSeLdACbRNmO2LioTMDV97VEMX1pPxCVANUcg1Qkg24iw8jLXXuh5U8etNSYpJSRmv8x82QkcuJokcbEUbNerQwwy/kd0AlAQElA4E7MxBKv5Ms0TMzhNqZIclUQII5nmTHU6wIwjaCrlNIhl/KQ1BSF1ByF7jTXoSSreiwIWHBF5pzDRpjs32JzqQGfilfoEp3HB4odpWa+xjlPQys9hfS6XYWRUl1Jy67orMDd03H2QkZ0M/+lW5DsS9nAdukHhaHPtyJDUwKPJeYzLVcgEajkUu9kQlHIoC45uiy8/A4SvjKlnvsbZt1lT25vLvFXhw07QGByMIb7MZhZydrlr10mp0iErLxADmAYHHGpOlCr9/9Ken7CQvTMXcNfv5zuZ2uCGjujm4/sgd/nmSbxJeR8c3Q2Nszvjfaop+CcGoW5R61IVxq/odWU98Z4SII+sbKHl4/RiHjD+t3LC+Rd0fZm6JarU68u/9A/UC/C/L5lT2Qz8j2Vzb/nlt+MRk6CKEosrIPxVNNKfzXoHT4JD1nsF+cQdn/QoM3xl/kWQ7+4+0vbwZ/ivxwf8/4qyHOXCnX31yFmwvw70r6u5L+6kqqZ+GJ0sLv6qiB8IJ2xdShigVqoW2INJRN02MvqZvzhAa+t6khyuyO6pza284Lg7oWLeRMsDVySNcLQ3UvDEvkhD3WOJ6W/7pOvSxxMis/blQ5XiYC8cb5sqwJ9eky3Ft1uiz3dw1xckxUY2TnzfIi/NJnLkrG++QpDrKJ28vzUaLs8Oz83cXpylNrYmy45qTVz5LVPTRTHVUeR+PnshMrRjAXFzueJEPMsxmZWMTxiEfHdDJBFEKAqEtG7phgNqHUwR6qOaGl5go/lM+5pm62+KCNUeLKQFK8auP++aO8un6el1k9RcO86Y/RV1WXGt0yK93ipdSdSm8s5f6TPHANBpbtuNwXxqb8Q92dTFIsUIpJ2S9L3Q9RR7nH9+keau04ds3hXnbWNl2TEMcGEBIHuIJ1bS5Kotp1FHSD2y4vl2kFfGm7Su3gHQ0WbH9PjGLvjTEcGqgU1qrog4pIVCufvcXKV6lcab8aiEhbZtYDqTZEKqeoNKFBA8ixsREGGHFwHAu3ItM4pJXxA6vOV62VqMILWC+4OtPcEJwknc26E6AQXJJfMLtrs0VME1muDdtlxv3e8zFXC3/ip1ZnM76/WktnKVvbWOym+OvsckP8kmi2oKbe/seC8rElz9shcBzQ8PMfWRzlcXoLJMvWNkSjqKA7EGinQNQp4wYQkj226gfH24AQL95Ekw+MztNtra5oIOggDAkWmz0twq+1sCEC1Vq6w2DuFIY6EdyAQXLClq5lFf859eeeeEPi2ks2mBaOQ0yMgQv1p0Wj0W7YlM1w8UZZ5o7zxgbv6TyvfDisnSGot9wdz93a5fqRuAae8nicpWuXhbryHnsbTCkbEmC62AauPpKl5raYX1kN3bHYJq5vYlE/EdfAQp6OszRMfYpF/t6RJhBwgFziOo5pIRNgLCImXRiKN5w2w0AW7wyAvVtjXz8NV76/KqxY5eIeHrTESG2FlAyBvJXS8zwSXUxDKQC40bsp6li4+XJVGq1t9GYVthCBNuLBrwWITU3mEZcSi2EPIwswb4QB9CaCXmnGw423pHggvXlIbGPFaLQDYwjWRsbGcST2aOfDXrYLtV2obJuK7u4gYDaOFkl0Jt41Vp87XIq1Q/xs61r56oHpy+i+TbNqolx/IjcfMhkQYFl85cLIgdCE4sxky2JV5Y8VMXjWeBZyl04S5n3SPVm6YeRtqy18IZpfLxi3dY1+7YWEZZTchrM2rMgdYAsSU1ApNnIwcTVhXfWW1e7w3YoQsNXuww6B1iUP7C7kAdoIyGJ+EgcDADFGmkCuZhV2B+WWvIPz2/AOji7vUJ2ieVi/9fzMYUV8ihLL4pNUE9ZWZiKDTnqIqyGVD7VjumzkhIY3j3G62bDa/rXiq6YzdjhZdRkOR5fhqEIu4pyrnEfYHe4WgpjYDtY1t6tJkV2CX2tpew1QMyk71ABdcsXZzO2qcQ/tOlA/O9dZK2zbhraFbeJoasU6Qqa7XnTnaNo1aWvSxlG7dMojfjvUJ11yx9nMzyuYkxfUJIu4lkscgpSalB34L7SoudKoqaFdrzKyle1XGLVD+NJqoss7Obq8U1VNMnKnrCNbWx/oDGwIIRAkg4OwOICstczI7DzipNB+6a2d2muYsTir8CzyGYkn3+y9nP7srouddY2o/dUdqtWvyqa1DDJ7gaHEV7WPVDWgzhydRn6TlrcbBI/WJOBKlzsScNRyIHVd7p6NyMghgJrMtdl4NHIQdSiwmc1MOhJs05Jms+t0XLn5jQk4ghWjeb0EHDEV3X2tBBzZmIBr0SztJdgZmMC0bRcQB9oudrFu4Pfq+Dbyavg2sj3fti2syBzYBCEMXNOELga2Lqx/B3wbeTV8G+nCt+Gt5id2TAKwC4FuKKbDt+3Gdd6ScXN/G8bN3ZJx29XC2xnYX5dx6w7nqyHY3M0JtoJv2hXMhJiCZXOJpbvx8VsRbN0BfzV8mrsbPq0V8o1ZkEIJILSdVUcv/1+xae7rZtPcbdm0l9MjB1sQuBYWCv8Pz6a5r5tNc3XZtMsIbEaSmQMCXIwJIDxCQ4AoQf+dJVulQyn78A9Pk0HwQjxZNbyFQDOlGPcgwwUb30u2OD9cmCfIcbMkig5R5skxSynEWrLlaL2i2HJGsWNWiPLpyA54qPN46KtYezhaDkMh0Mrc0QCkkeFLnR4HIgusB0EsWn2jCcUynWLefPfM1XnBDpJXJONoF3AzZlzDDK9OjNySglS4A810G6XLHalhQhFxTWzZBEOP8NBiTNAE8flkAteELhlja2IRSkvUsMvnlG2KTbgmPyz7sDE/nEawu3p/2dRTyr8rldR8b0x3Ed7h2+J4mcGnJWuZCdZK+9WuwnBbgqltFV6zSKxMzw3r9FMGX3N9SPdYN1ofXBc5jok8xwGEWsCGLoYI29iEmIwY8zAFcMwoLq0PCFhpai1X+YLz1iuEXlJy+dMqZZ50nYFt244lU38hiJvJv9AAYwxdyE2VaUrPQvXJpTZtLeXSS9O5X0bqHNjl7ITlRzsopMIt2GIlgMVO180jnTG1jNNb1S05S5m7FzRlIuZxllngJolZ4j0WX00JH0SCAcHgpvVnDRaPt0hEPJl33ZIly+kLtnCE9LJ/N5Oc2rpeKc5uO3bfQKmS8TlmaQRzCjUr3uppS0HWfaHT+HLHUpgqorzix+hl724Kk6y1JiUpkmyqIs2Pn1REU3yd6e7o9tuq0NZJdUXRDvJW5MJsl7eKtq5+sUEryWVT3s5aecP0Y3Vb6uvNYpQmIOnqKxXl9AWrSpTdLlgVPVz5JoNmCuyGYF09wUIzM5ri7OxawTbejKlLepUoUzl2J3S64bVZIx3AVQfF+vyEisCtfAJCM9W1lmsMuixmu9WEwkaUF6tOK1sXVNTZK/VRUfGllW9BtGSt3ggVWEYlTznaOkE72hgu91v61G5IVk6eomAH0Xcy202ecU0YUl0eDw8aX+treAPSC5A+pfiwKx/W8WIy0fq8Ynv+qka6qnrdqsRVDkg/tLIidRUX55TGz8aP7HllqinYSz9WG8X8YdVmxNrcUxCpY+568qliWLX8U+Xdt+rQB++eeM8SSYd/MzTA2+oHDsfMGyGKiQMnI+hhwOM5l43IyLPGtgNdm8d0mIrXvypRW7UjywOCaIv3cKFeLm7506xP1DyEA83oI5usWeLglq9FrHVS+GCFgrRP3prcq9sR1dL6M1iVYHuLgE4vc7b8idslLM5TK2W8njZTCrespJ1lWyncQbSdYuW1AaJejmv5E3Wx/Sv1die6urF2bsmF18LClmzSahHCemBtrdrsMV2dRMib6uOmGtjJPDejvE6JIKDIMaqTCaLNji/brz9xmLWj+FBvahxB/o/Sw1weDOGARovYY+Kz88VZg0fmfS4ypssHy6dJ5EemuXnO3FMml4VCoKLJTJs+hWM28UPByR+UxlLtfFki5XEeZl90rn0fWn6Zj0/n9JPzbruvuWyzsiCn6RjTr9Wn8mnwgLVi+WKTpkuUxWC1mOoT2rVa8vkmkhtmtbj1xvPFNS95eLAc/+HBz0lMMz91fkGfo0VywwQNyqdj/If/Aw==</Description>
   <AutoRefresh>0</AutoRefresh>
   <DataSources>
     <DataSource Name="DataSource">
@@ -16420,8 +17324,8 @@ OBJECT Report 70528 ForNAV Purchase Template
 {
   OBJECT-PROPERTIES
   {
-    Date=07-02-18;
-    Time=10:52:28;
+    Date=09-02-18;
+    Time=17:40:05;
     Modified=Yes;
     Version List=SHIP,FORNAV3.0.0.1428/1428;
   }
@@ -16872,7 +17776,7 @@ OBJECT Report 70528 ForNAV Purchase Template
   {
     <?xml version="1.0" encoding="utf-8"?>
 <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
-  <Description>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</Description>
+  <Description>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</Description>
   <AutoRefresh>0</AutoRefresh>
   <DataSources>
     <DataSource Name="DataSource">
@@ -16902,8 +17806,8 @@ OBJECT Report 70529 ForNAV Sales Template
 {
   OBJECT-PROPERTIES
   {
-    Date=07-02-18;
-    Time=10:51:08;
+    Date=09-02-18;
+    Time=17:39:41;
     Modified=Yes;
     Version List=SHIP,FORNAV3.0.0.1428/1428;
   }
@@ -17354,7 +18258,7 @@ OBJECT Report 70529 ForNAV Sales Template
   {
     <?xml version="1.0" encoding="utf-8"?>
 <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
-  <Description>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</Description>
+  <Description>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</Description>
   <AutoRefresh>0</AutoRefresh>
   <DataSources>
     <DataSource Name="DataSource">
@@ -19201,6 +20105,459 @@ OBJECT Codeunit 70221 ForNAV Vendor Aging
       Unauthorized reverse engineering, distribution or copying of this file, parts hereof, or derived work, via any medium is strictly prohibited without written permission from ForNAV ApS.
       This source code is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     }
+    END.
+  }
+}
+
+OBJECT Codeunit 70300 ForNAV Void Check
+{
+  OBJECT-PROPERTIES
+  {
+    Date=09-02-18;
+    Time=10:32:56;
+    Modified=Yes;
+    Version List=SHIP;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+
+    PROCEDURE TestVoidCheck@1000000001(VAR GenJnlLn@1000000001 : Record 81;VAR Args@1000000006 : Record 70300;Preview@1000000005 : Boolean) : Boolean;
+    VAR
+      Text000Err@1000000004 : TextConst 'ENU=Preview is not allowed.;ESM=No se permite la vista previa.;FRC=Impossible d''afficher Ö l''Çcran.;ENC=Preview is not allowed.';
+      Text001Err@1000000003 : TextConst 'ENU=Last Check No. must be filled in.;ESM=Se debe rellenar el campo Èlt. n.ß cheque.;FRC=Le numÇro du dernier chäque doit àtre renseignÇ.;ENC=Last Cheque No. must be filled in.';
+      Text002Err@1000000002 : TextConst '@@@="%1=Field caption for Line No. field.; %2=Field caption for Document No. field.";ENU=Filters on %1 and %2 are not allowed.;ESM=No se permiten filtros en %1 y %2.;FRC=Les filtres sur %1 et %2 ne sont pas permis.;ENC=Filters on %1 and %2 are not allowed.';
+      USText004Err@1000000007 : TextConst 'ENU=Last Check No. must include at least one digit, so that it can be incremented.;ESM=El campo Èlt. n.ß cheque debe incluir al menos un d°gito, de modo que pueda incrementarse.;FRC=Le n¯ du dernier chäque doit comprendre au moins un chiffre afin de pouvoir àtre incrÇmentÇ.;ENC=Last Cheque No. must include at least one digit, so that it can be incremented.';
+    BEGIN
+      IF Preview THEN
+        ERROR(Text000Err);
+      IF Args."Check No." = '' THEN
+        ERROR(Text001Err);
+      IF INCSTR(Args."Check No.") = '' THEN
+        ERROR(USText004Err);
+      IF Args."Test Print" THEN
+        EXIT(FALSE);
+      IF NOT Args."Reprint Checks" THEN
+        EXIT(FALSE);
+      WITH GenJnlLn DO BEGIN
+
+        IF (GETFILTER("Line No.") <> '') OR (GETFILTER("Document No.") <> '') THEN
+          ERROR(
+            Text002Err,FIELDCAPTION("Line No."),FIELDCAPTION("Document No."));
+
+        SETRANGE("Bank Payment Type", "Bank Payment Type"::"Computer Check");
+        SETRANGE("Check Printed",TRUE);
+      END;
+
+      EXIT(TRUE);
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
+OBJECT Codeunit 70301 ForNAV Check Update Journal
+{
+  OBJECT-PROPERTIES
+  {
+    Date=09-02-18;
+    Time=17:35:49;
+    Modified=Yes;
+    Version List=SHIP;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+
+    PROCEDURE UpdateJournal@1000000001(Args@1000000003 : Record 70300;VAR Check@1000000001 : Record 70301;VAR GenJnlLine@1000000000 : Record 81);
+    VAR
+      GenJnlLine2@1000000002 : Record 81;
+      Text013@1000000004 : TextConst 'DAN=%1 findes allerede.;DEU=%1 ist schon vorhanden.;ENU=%1 already exists.;NLD=%1 bestaat reeds.';
+      GenJnlLine3@1000000006 : Record 81;
+      BankAcc@1000000008 : Record 270;
+      HighestLineNo@1000000007 : Integer;
+      BalancingType@1000000009 : 'G/L Account,Customer,Vendor,Bank Account';
+      Text014@1000000010 : TextConst 'DAN=Undersõg for %1 %2;DEU=Scheck fÅr %1 %2;ENU=Check for %1 %2;NLD=Cheque voor %1 %2';
+      Text062@1000000011 : TextConst 'DAN=Finanskonto,Debitor,Kreditor,Bankkonto;DEU=Sachkonto,Debitor,Kreditor,Bankkonto;ENU=G/L Account,Customer,Vendor,Bank Account;NLD=Grootboekrekening,Klant,Leverancier,Bank';
+    BEGIN
+      WITH Check DO BEGIN
+        BankAcc.GET("Bank Account No.");
+        BankAcc."Last Check No." := "Check No.";
+        BankAcc.MODIFY;
+        IF Args."Test Print" THEN
+          EXIT;
+        IF "Check No." <> GenJnlLine."Document No." THEN BEGIN
+          GenJnlLine3.RESET;
+          GenJnlLine3.SETCURRENTKEY("Journal Template Name","Journal Batch Name","Posting Date","Document No.");
+          GenJnlLine3.SETRANGE("Journal Template Name",GenJnlLine."Journal Template Name");
+          GenJnlLine3.SETRANGE("Journal Batch Name",GenJnlLine."Journal Batch Name");
+          GenJnlLine3.SETRANGE("Posting Date",GenJnlLine."Posting Date");
+          GenJnlLine3.SETRANGE("Document No.","Check No.");
+          IF GenJnlLine3.FIND('-') THEN
+            GenJnlLine3.FIELDERROR("Document No.",STRSUBSTNO(Text013,"Check No."));
+        END;
+
+        IF ApplyMethod <> ApplyMethod::MoreLinesOneEntry THEN BEGIN
+          GenJnlLine3 := GenJnlLine;
+          GenJnlLine3.TESTFIELD("Posting No. Series",'');
+          GenJnlLine3."Document No." := "Check No.";
+          GenJnlLine3."Check Printed" := TRUE;
+          GenJnlLine3.MODIFY;
+        END ELSE BEGIN
+          IF GenJnlLine2.FIND('-') THEN BEGIN
+            HighestLineNo := GenJnlLine2."Line No.";
+            REPEAT
+              IF GenJnlLine2."Line No." > HighestLineNo THEN
+                HighestLineNo := GenJnlLine2."Line No.";
+              GenJnlLine3 := GenJnlLine2;
+              GenJnlLine3.TESTFIELD("Posting No. Series",'');
+              GenJnlLine3."Bal. Account No." := '';
+              GenJnlLine3."Bank Payment Type" := GenJnlLine3."Bank Payment Type"::" ";
+              GenJnlLine3."Document No." := "Check No.";
+              GenJnlLine3."Check Printed" := TRUE;
+              GenJnlLine3.VALIDATE(Amount);
+              GenJnlLine3.MODIFY;
+            UNTIL GenJnlLine2.NEXT = 0;
+          END;
+
+          GenJnlLine3.RESET;
+          GenJnlLine3 := GenJnlLine;
+          GenJnlLine3.SETRANGE("Journal Template Name",GenJnlLine."Journal Template Name");
+          GenJnlLine3.SETRANGE("Journal Batch Name",GenJnlLine."Journal Batch Name");
+          GenJnlLine3."Line No." := HighestLineNo;
+          IF GenJnlLine3.NEXT = 0 THEN
+            GenJnlLine3."Line No." := HighestLineNo + 10000
+          ELSE BEGIN
+            WHILE GenJnlLine3."Line No." = HighestLineNo + 1 DO BEGIN
+              HighestLineNo := GenJnlLine3."Line No.";
+              IF GenJnlLine3.NEXT = 0 THEN
+                GenJnlLine3."Line No." := HighestLineNo + 20000;
+            END;
+            GenJnlLine3."Line No." := (GenJnlLine3."Line No." + HighestLineNo) DIV 2;
+          END;
+          GenJnlLine3.INIT;
+          GenJnlLine3.VALIDATE("Posting Date",GenJnlLine."Posting Date");
+          GenJnlLine3."Document Type" := GenJnlLine."Document Type";
+          GenJnlLine3."Document No." := "Check No.";
+          GenJnlLine3."Account Type" := GenJnlLine3."Account Type"::"Bank Account";
+          GenJnlLine3.VALIDATE("Account No.",BankAcc."No.");
+          IF BalancingType <> BalancingType::"G/L Account" THEN
+            GenJnlLine3.Description := STRSUBSTNO(Text014,SELECTSTR(BalancingType + 1,Text062),"Balancing No.");
+          GenJnlLine3.VALIDATE(Amount,- Amount);
+          GenJnlLine3."Bank Payment Type" := GenJnlLine3."Bank Payment Type"::"Computer Check";
+          GenJnlLine3."Check Printed" := TRUE;
+          GenJnlLine3."Source Code" := GenJnlLine."Source Code";
+          GenJnlLine3."Reason Code" := GenJnlLine."Reason Code";
+          GenJnlLine3."Allow Zero-Amount Posting" := TRUE;
+          GenJnlLine3.INSERT;
+        END;
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
+OBJECT Codeunit 70302 ForNAV Create Stub
+{
+  OBJECT-PROPERTIES
+  {
+    Date=09-02-18;
+    Time=14:02:14;
+    Modified=Yes;
+    Version List=SHIP;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+
+    PROCEDURE FromCheck@1000000001(Args@1000000004 : Record 70300;VAR Check@1000000000 : Record 70301;VAR Stub@1000000001 : Record 70302;GenJnlLine@1000000006 : Record 81);
+    VAR
+      CustLedgerEntry@1000000003 : Record 21;
+      VendorLedgerEntry@1000000002 : Record 25;
+      FoundLast@1000000005 : Boolean;
+      FoundNegative@1000000008 : Boolean;
+      RemainingAmount@1000000007 : Decimal;
+    BEGIN
+      InitCode(Args, Check, GenJnlLine, CustLedgerEntry, VendorLedgerEntry, FoundLast, FoundNegative);
+      RemainingAmount := Check.Amount;
+      RepeatCode(Args, Check, Stub, GenJnlLine, CustLedgerEntry, VendorLedgerEntry, FoundLast, RemainingAmount, FoundNegative);
+    END;
+
+    LOCAL PROCEDURE InitCode@1000000000(Args@1000000002 : Record 70300;Check@1000000004 : Record 70301;GenJnlLine@1000000005 : Record 81;VAR CustLedgEntry@1000000000 : Record 21;VAR VendLedgEntry@1000000001 : Record 25;VAR FoundLast@1000000003 : Boolean;VAR FoundNegative@1000000006 : Boolean);
+    BEGIN
+      IF NOT Args."Test Print" THEN
+        IF TRUE THEN BEGIN
+          FoundLast := TRUE;
+          CASE Check.ApplyMethod OF
+            Check.ApplyMethod::OneLineOneEntry:
+              FoundLast := FALSE;
+            Check.ApplyMethod::OneLineID:
+              CASE Check."Balancing Type" OF
+                Check."Balancing Type"::Customer:
+                  BEGIN
+                    CustLedgEntry.RESET;
+                    CustLedgEntry.SETCURRENTKEY("Customer No.",Open,Positive);
+                    CustLedgEntry.SETRANGE("Customer No.",Check."Balancing No.");
+                    CustLedgEntry.SETRANGE(Open,TRUE);
+                    CustLedgEntry.SETRANGE(Positive,TRUE);
+                    CustLedgEntry.SETRANGE("Applies-to ID",GenJnlLine."Applies-to ID");
+                    FoundLast := NOT CustLedgEntry.FIND('-');
+                    IF FoundLast THEN BEGIN
+                      CustLedgEntry.SETRANGE(Positive,FALSE);
+                      FoundLast := NOT CustLedgEntry.FIND('-');
+                      FoundNegative := TRUE;
+                    END ELSE
+                      FoundNegative := FALSE;
+                  END;
+                Check."Balancing Type"::Vendor:
+                  BEGIN
+                    VendLedgEntry.RESET;
+                    VendLedgEntry.SETCURRENTKEY("Vendor No.",Open,Positive);
+                    VendLedgEntry.SETRANGE("Vendor No.",Check."Balancing No.");
+                    VendLedgEntry.SETRANGE(Open,TRUE);
+                    VendLedgEntry.SETRANGE(Positive,TRUE);
+                    VendLedgEntry.SETRANGE("Applies-to ID",GenJnlLine."Applies-to ID");
+                    FoundLast := NOT VendLedgEntry.FIND('-');
+                    IF FoundLast THEN BEGIN
+                      VendLedgEntry.SETRANGE(Positive,FALSE);
+                      FoundLast := NOT VendLedgEntry.FIND('-');
+                      FoundNegative := TRUE;
+                    END ELSE
+                      FoundNegative := FALSE;
+                  END;
+              END;
+            Check.ApplyMethod::MoreLinesOneEntry:
+              FoundLast := FALSE;
+          END;
+        END
+      ELSE
+        FoundLast := FALSE;
+    END;
+
+    LOCAL PROCEDURE RepeatCode@1000000002(Args@1000000003 : Record 70300;Check@1000000006 : Record 70301;VAR Stub@1000000005 : Record 70302;GenJnlLine@1000000007 : Record 81;VAR CustLedgEntry@1000000001 : Record 21;VAR VendLedgEntry@1000000000 : Record 25;VAR FoundLast@1000000002 : Boolean;VAR RemainingAmount@1000000004 : Decimal;FoundNegative@1000000010 : Boolean);
+    VAR
+      LineAmount2@1000000008 : Decimal;
+      CurrentLineAmount@1000000009 : Decimal;
+      GenJnlLine2@1000000011 : Record 81;
+      Text016@1000000013 : TextConst 'ENU=In the Check report, One Check per Vendor and Document No.\;ESM=En informe de cheques, Un cheque por proveedor y nß documento\;FRC=Dans l''Çtat Chäque, un chäque par fournisseur et par n¯ document\;ENC=In the Cheque report, One Cheque per Vendor and Document No.\';
+      Text017@1000000012 : TextConst 'ENU=must not be activated when Applies-to ID is specified in the journal lines.;ESM=no se debe activar cuando se ha usado Liq. por id. en las l°neas de diario.;FRC=ne doit pas àtre activÇ lorsque Code affectÇ Ö est spÇcifiÇ dans les lignes du journal.;ENC=must not be activated when Applies-to ID is specified in the journal lines.';
+    BEGIN
+      REPEAT
+        IF NOT Args."Test Print" THEN BEGIN
+          IF FoundLast THEN BEGIN
+            IF RemainingAmount <> 0 THEN BEGIN
+        //      DocType := Text015;
+              Stub."Document No." := '';
+              Stub."External Document No." := '';
+              Stub.Amount := RemainingAmount;
+              LineAmount2 := RemainingAmount;
+              CurrentLineAmount := LineAmount2;
+              Stub."Discount Amount" := 0;
+              Stub."Currency Code" := GenJnlLine."Currency Code";
+              Stub.INSERT;
+              RemainingAmount := 0;
+        //      PostingDesc := CheckToAddr[1];
+            END ELSE
+              EXIT;
+          END ELSE BEGIN
+            CASE Check.ApplyMethod OF
+              Check.ApplyMethod::OneLineOneEntry:
+                BEGIN
+                  CASE Check."Balancing Type" OF
+                    Check."Balancing Type"::Customer:
+                      BEGIN
+                        CustLedgEntry.RESET;
+                        CustLedgEntry.SETCURRENTKEY("Document No.");
+                        CustLedgEntry.SETRANGE("Document Type",GenJnlLine."Applies-to Doc. Type");
+                        CustLedgEntry.SETRANGE("Document No.",GenJnlLine."Applies-to Doc. No.");
+                        CustLedgEntry.SETRANGE("Customer No.",Check."Balancing No.");
+                        CustLedgEntry.FIND('-');
+                        Stub.CustUpdateAmounts(CustLedgEntry,RemainingAmount,LineAmount2);
+                      END;
+                    Check."Balancing Type"::Vendor:
+                      BEGIN
+                        VendLedgEntry.RESET;
+                        VendLedgEntry.SETCURRENTKEY("Document No.");
+                        VendLedgEntry.SETRANGE("Document Type",GenJnlLine."Applies-to Doc. Type");
+                        VendLedgEntry.SETRANGE("Document No.",GenJnlLine."Applies-to Doc. No.");
+                        VendLedgEntry.SETRANGE("Vendor No.",Check."Balancing No.");
+                        VendLedgEntry.FIND('-');
+                        Stub.VendUpdateAmounts(VendLedgEntry,RemainingAmount,LineAmount2);
+                      END;
+                  END;
+                  RemainingAmount := RemainingAmount - LineAmount2;
+                  CurrentLineAmount := LineAmount2;
+                  FoundLast := TRUE;
+                END;
+              Check.ApplyMethod::OneLineID:
+                BEGIN
+                  CASE Check."Balancing Type" OF
+                    Check."Balancing Type"::Customer:
+                      BEGIN
+                        Stub."Currency Code" := GenJnlLine."Currency Code";
+                        Stub.CustUpdateAmounts(CustLedgEntry,RemainingAmount,LineAmount2);
+                        FoundLast := (CustLedgEntry.NEXT = 0) OR (RemainingAmount <= 0);
+                        IF FoundLast AND NOT FoundNegative THEN BEGIN
+                          CustLedgEntry.SETRANGE(Positive,FALSE);
+                          FoundLast := NOT CustLedgEntry.FIND('-');
+                          FoundNegative := TRUE;
+                        END;
+                      END;
+                    Check."Balancing Type"::Vendor:
+                      BEGIN
+                        Stub."Currency Code" := GenJnlLine."Currency Code";
+                        Stub.VendUpdateAmounts(VendLedgEntry,RemainingAmount,LineAmount2);
+                        FoundLast := (VendLedgEntry.NEXT = 0) OR (RemainingAmount <= 0);
+                        IF FoundLast AND NOT FoundNegative THEN BEGIN
+                          VendLedgEntry.SETRANGE(Positive,FALSE);
+                          FoundLast := NOT VendLedgEntry.FIND('-');
+                          FoundNegative := TRUE;
+                        END;
+                      END;
+                  END;
+                  RemainingAmount := RemainingAmount - LineAmount2;
+                  CurrentLineAmount := LineAmount2
+                END;
+              Check.ApplyMethod::MoreLinesOneEntry:
+                BEGIN
+                  GetGenJnlLnForMoreLinesOneEntry(GenJnlLine, GenJnlLine2); // Needs Refactoring
+                  CurrentLineAmount := GenJnlLine2.Amount;
+                  LineAmount2 := CurrentLineAmount;
+                  IF GenJnlLine2."Applies-to ID" <> '' THEN
+                    ERROR(
+                      Text016 +
+                      Text017);
+                  GenJnlLine2.TESTFIELD("Check Printed",FALSE);
+                  GenJnlLine2.TESTFIELD("Bank Payment Type",GenJnlLine2."Bank Payment Type"::"Computer Check");
+                  IF GenJnlLine2."Applies-to Doc. No." = '' THEN BEGIN
+                    //DocType := Text015;
+                    Stub."Document No." := '';
+                    Stub."External Document No." := '';
+                    Stub.Amount := CurrentLineAmount;
+                    Stub."Discount Amount" := 0;
+                    Stub."Currency Code" := GenJnlLine."Currency Code";
+                    Stub.INSERT;
+                    //PostingDesc := GenJnlLine2.Description;
+                  END ELSE BEGIN
+                    CASE Check."Balancing Type" OF
+                      Check."Balancing Type"::"G/L Account":
+                        BEGIN
+                          //DocType := FORMAT(GenJnlLine2."Document Type");
+                          Stub."Document No." := GenJnlLine2."Document No.";
+                          Stub."External Document No." := GenJnlLine2."External Document No.";
+                          Stub.Amount := CurrentLineAmount;
+                          Stub."Discount Amount" := 0;
+                          Stub."Currency Code" := GenJnlLine."Currency Code";
+                          Stub.INSERT;
+        //                  PostingDesc := GenJnlLine2.Description;
+                        END;
+                      Check."Balancing Type"::Customer:
+                        BEGIN
+                          CustLedgEntry.RESET;
+                          CustLedgEntry.SETCURRENTKEY("Document No.");
+                          CustLedgEntry.SETRANGE("Document Type",GenJnlLine2."Applies-to Doc. Type");
+                          CustLedgEntry.SETRANGE("Document No.",GenJnlLine2."Applies-to Doc. No.");
+                          CustLedgEntry.SETRANGE("Customer No.",Check."Balancing No.");
+                          CustLedgEntry.FIND('-');
+                          Stub."Currency Code" := GenJnlLine."Currency Code";
+                          Stub.CustUpdateAmounts(CustLedgEntry,CurrentLineAmount,LineAmount2);
+                          Stub.Amount := CurrentLineAmount;
+                        END;
+                      Check."Balancing Type"::Vendor:
+                        BEGIN
+                          VendLedgEntry.RESET;
+                          VendLedgEntry.SETCURRENTKEY("Document No.");
+                          VendLedgEntry.SETRANGE("Document Type",GenJnlLine2."Applies-to Doc. Type");
+                          VendLedgEntry.SETRANGE("Document No.",GenJnlLine2."Applies-to Doc. No.");
+                          VendLedgEntry.SETRANGE("Vendor No.",Check."Balancing No.");
+                          VendLedgEntry.FIND('-');
+                          Stub."Currency Code" := GenJnlLine."Currency Code";
+                          Stub.VendUpdateAmounts(VendLedgEntry,CurrentLineAmount,LineAmount2);
+                          Stub.Amount := CurrentLineAmount; // WTF??
+                        END;
+                      Check."Balancing Type"::"Bank Account":
+                        BEGIN
+                          //DocType := FORMAT(GenJnlLine2."Document Type");
+                          Stub."Document No." := GenJnlLine2."Document No.";
+                          Stub."External Document No." := GenJnlLine2."External Document No.";
+                          Stub.Amount := CurrentLineAmount;
+                          Stub."Discount Amount" := 0;
+                          Stub."Currency Code" := GenJnlLine."Currency Code";
+                          Stub.INSERT;
+        //                  PostingDesc := GenJnlLine2.Description;
+                        END;
+                    END;
+                  END;
+                  FoundLast := GenJnlLine2.NEXT = 0;
+                END;
+            END;
+          END;
+        //  TotalLineAmount := TotalLineAmount + CurrentLineAmount;
+        //  TotalLineDiscount := TotalLineDiscount + LineDiscount;
+        END ELSE BEGIN
+          IF FoundLast THEN
+            EXIT;
+          FoundLast := TRUE;
+        //  DocType := Text018;
+          Stub."Document No." := 'XXXXXXXXXX';
+          Stub."External Document No." := 'XXXXXXXXXX';
+          Stub.Amount := 0;
+          Stub."Discount Amount" := 0;
+          Stub."Currency Code" := GenJnlLine."Currency Code";
+          Stub.INSERT;
+        //  PostingDesc := '';
+        END;
+        IF ISSERVICETIER THEN BEGIN
+        //  IF Stub."Document No." = '' THEN
+        //    CurrencyCode2 := GenJnlLine."Currency Code";
+        //  Stub2LineNo := Stub2LineNo + 1;
+        //  Stub2DocNo[Stub2LineNo] := DocNo;
+        //  Stub2DocDate[Stub2LineNo] := DocDate;
+        //  Stub2LineAmount[Stub2LineNo] := LineAmount;
+        //  Stub2LineDiscount[Stub2LineNo] := LineDiscount;
+        //  Stub2PostingDesc[Stub2LineNo] := PostingDesc;
+        END;
+      UNTIL FoundLast;
+    END;
+
+    LOCAL PROCEDURE GetGenJnlLnForMoreLinesOneEntry@1000000020(GenJnlLine@1000000000 : Record 81;VAR GenJnlLine2@1000000001 : Record 81);
+    BEGIN
+      WITH GenJnlLine DO BEGIN
+
+        GenJnlLine2.RESET;
+        GenJnlLine2.SETCURRENTKEY("Journal Template Name","Journal Batch Name","Posting Date","Document No.");
+        GenJnlLine2.SETRANGE("Journal Template Name","Journal Template Name");
+        GenJnlLine2.SETRANGE("Journal Batch Name","Journal Batch Name");
+        GenJnlLine2.SETRANGE("Posting Date","Posting Date");
+        GenJnlLine2.SETRANGE("Document No.","Document No.");
+        GenJnlLine2.SETRANGE("Account Type","Account Type");
+        GenJnlLine2.SETRANGE("Account No.","Account No.");
+        GenJnlLine2.SETRANGE("Bal. Account Type","Bal. Account Type");
+        GenJnlLine2.SETRANGE("Bal. Account No.","Bal. Account No.");
+        GenJnlLine2.SETRANGE("Bank Payment Type","Bank Payment Type");
+        GenJnlLine2.FIND('-');
+      END;
+    END;
+
+    BEGIN
     END.
   }
 }
